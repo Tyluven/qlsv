@@ -49,9 +49,53 @@ MonHoc* timMH(string ma) {
     return nullptr;
 }
 
-void themSinhVien(string ma, string ten) {
+//void themSinhVien(string ma, string ten) {
+//    if (timSV(ma)) {
+//        cout << "Sinh vien da ton tai.\n";
+//        return;
+//    }
+//    SinhVien* p = new SinhVien{ma, ten, nullptr};
+//    if (!dsSV) dsSV = p;
+//    else {
+//        SinhVien* temp = dsSV;
+//        while (temp->next) temp = temp->next;
+//        temp->next = p;
+//    }
+//    cout << "Da them sinh vien thanh cong! \n";
+//}
+//
+//void themMonHoc(string ma, string ten) {
+//    if (timMH(ma)) {
+//        cout << "Mon hoc da ton tai.\n";
+//        return;
+//    }
+//    MonHoc* p = new MonHoc{ma, ten, nullptr};
+//    if (!dsMH) dsMH = p;
+//    else {
+//        MonHoc* temp = dsMH;
+//        while (temp->next) temp = temp->next;
+//        temp->next = p;
+//    }
+//    cout << "Da them mon hoc thanh cong! \n";
+//}
+//
+//void themDiem(string maSV, string maMH, float diem) {
+//    if (!timSV(maSV) || !timMH(maMH)) {
+//        cout << "Ma sinh vien hoac ma mon hoc khong hop le.\n";
+//        return;
+//    }
+//    Diem* p = new Diem{maSV, maMH, diem, nullptr};
+//    if (!dsDiem) dsDiem = p;
+//    else {
+//        Diem* temp = dsDiem;
+//        while (temp->next) temp = temp->next;
+//        temp->next = p;
+//    }
+//}
+//Tien Thanh update add sinh vien, mon, diem
+void themSinhVien(string ma, string ten, bool inThongBao = true) {
     if (timSV(ma)) {
-        cout << "Sinh vien da ton tai.\n";
+        if (inThongBao) cout << "Sinh vien da ton tai.\n";
         return;
     }
     SinhVien* p = new SinhVien{ma, ten, nullptr};
@@ -61,11 +105,12 @@ void themSinhVien(string ma, string ten) {
         while (temp->next) temp = temp->next;
         temp->next = p;
     }
+    if (inThongBao) cout << "Da them sinh vien thanh cong! \n";
 }
 
-void themMonHoc(string ma, string ten) {
+void themMonHoc(string ma, string ten, bool inThongBao = true) {
     if (timMH(ma)) {
-        cout << "Mon hoc da ton tai.\n";
+        if (inThongBao) cout << "Mon hoc da ton tai.\n";
         return;
     }
     MonHoc* p = new MonHoc{ma, ten, nullptr};
@@ -75,21 +120,49 @@ void themMonHoc(string ma, string ten) {
         while (temp->next) temp = temp->next;
         temp->next = p;
     }
+    if (inThongBao) cout << "Da them mon hoc thanh cong! \n";
 }
 
-void themDiem(string maSV, string maMH, float diem) {
+void themDiem(string maSV, string maMH, float diem, bool inThongBao = true) {
     if (!timSV(maSV) || !timMH(maMH)) {
-        cout << "Ma sinh vien hoac ma mon hoc khong hop le.\n";
+        if (inThongBao) cout << "Ma sinh vien hoac ma mon hoc khong hop le.\n";
         return;
     }
-    Diem* p = new Diem{maSV, maMH, diem, nullptr};
-    if (!dsDiem) dsDiem = p;
+
+    Diem* p = dsDiem;
+    while (p) {
+        if (p->maSV == maSV && p->maMH == maMH) {
+            p->diem = diem;
+            if (inThongBao) {
+                SinhVien* sv = timSV(maSV);
+                MonHoc* mh = timMH(maMH);
+                if (sv && mh)
+                    cout << "Da cap nhat diem mon " << mh->tenMH
+                         << " cho sinh vien " << sv->hoTen << "!\n";
+            }
+            return;
+        }
+        p = p->next;
+    }
+
+    Diem* newDiem = new Diem{maSV, maMH, diem, nullptr};
+    if (!dsDiem) dsDiem = newDiem;
     else {
         Diem* temp = dsDiem;
         while (temp->next) temp = temp->next;
-        temp->next = p;
+        temp->next = newDiem;
+    }
+
+    if (inThongBao) {
+        SinhVien* sv = timSV(maSV);
+        MonHoc* mh = timMH(maMH);
+        if (sv && mh)
+            cout << "Da them diem mon " << mh->tenMH
+                 << " cho sinh vien " << sv->hoTen << " thanh cong!\n";
     }
 }
+
+
 
 void inDSSV() {
     cout << "\nDanh sach sinh vien:\n";
@@ -294,7 +367,7 @@ void docFile() {
         size_t pos = line.find(",");
         string ma = line.substr(0, pos);
         string ten = line.substr(pos + 1);
-        themSinhVien(ma, ten);
+        themSinhVien(ma, ten, false);
     }
     fsv.close();
 
@@ -303,7 +376,7 @@ void docFile() {
         size_t pos = line.find(",");
         string ma = line.substr(0, pos);
         string ten = line.substr(pos + 1);
-        themMonHoc(ma, ten);
+        themMonHoc(ma, ten, false);
     }
     fmh.close();
 
@@ -314,7 +387,7 @@ void docFile() {
         string maSV = line.substr(0, p1);
         string maMH = line.substr(p1 + 1, p2 - p1 - 1);
         float diem = stof(line.substr(p2 + 1));
-        themDiem(maSV, maMH, diem);
+        themDiem(maSV, maMH, diem, false);
     }
     fdiem.close();
 
@@ -338,7 +411,7 @@ void sapXepSVTheoMa() {
     sort(svList.begin(), svList.end(), [](SinhVien* a, SinhVien* b) {
         return a->maSV < b->maSV;
     });
-    cout << "\nSV theo ma:\n";
+    cout << "\nSV theo ma SV:\n";
     for (SinhVien* sv : svList)
         cout << sv->maSV << " - " << sv->hoTen << endl;
 }
@@ -423,7 +496,7 @@ void thongKeDauRotTheoMon() {
             kq[p->maMH].second++;
         p = p->next;
     }
-    cout << "\nThong ke dau/rot:\n";
+    cout << "\nThong ke dau/rot (theo mon):\n";
     for (auto& kv : kq) {
         MonHoc* mh = timMH(kv.first);
         cout << kv.first << " - " << (mh ? mh->tenMH : "") << " => Dau: " << kv.second.first << ", Rot: " << kv.second.second << endl;
@@ -449,9 +522,12 @@ void menu() {
         cout << "5. In danh sach mon hoc\n";
         cout << "6. In bang diem\n";
         cout << "7. Tim sinh vien theo ten\n";
-        cout << "8. Thong ke hoc luc\n";
-        cout << "9. Sua sinh vien / mon hoc / diem\n";
-        cout << "10. Xoa sinh vien / mon hoc / diem\n";
+        cout << "8. Sap xep sinh vien\n";
+		cout << "9. Thong ke so luong va hoc luc\n";
+        cout << "10. Thong ke diem cao nhat/ thap nhat\n";
+        cout << "11. Sua sinh vien/ mon hoc/ diem\n";
+        cout << "12. Xoa sinh vien/ mon hoc/ diem\n";
+
         cout << "0. Thoat\n";
         cout << "Chon: ";
         cin >> chon;
@@ -482,8 +558,27 @@ void menu() {
             cout << "Nhap tu khoa ten: "; getline(cin, ten);
             timKiemSVTheoTen(ten);
         }
-        else if (chon == 8) thongKeHocLuc();
+        else if (chon == 8) {
+		    int loai;
+		    cout << "1. Theo ma SV | 2. Theo ten | 3. DTB tang | 4. DTB giam: ";
+		    cin >> loai; cin.ignore();
+		    if (loai == 1) sapXepSVTheoMa();
+		    else if (loai == 2) sapXepSVTheoTen();
+		    else if (loai == 3) sapXepSVTheoDTBTang();
+		    else if (loai == 4) sapXepSVTheoDTBGiam();
+		}
         else if (chon == 9) {
+		    demSoLuongThongKe();
+		    thongKeHocLuc();
+		    thongKeDauRotTheoMon();
+		}
+		else if (chon == 10) {
+		    diemCaoNhat();
+		    diemThapNhat();
+		    svDiemTBCaoNhat();
+		    svDiemTBThapNhat();
+		}
+        else if (chon == 11) {
             int loai;
             cout << "1. Sua SV | 2. Sua MH | 3. Sua diem: ";
             cin >> loai; cin.ignore();
@@ -500,7 +595,7 @@ void menu() {
                 suaDiem(maSV, maMH);
             }
         }
-        else if (chon == 10) {
+        else if (chon == 12) {
             int loai;
             cout << "1. Xoa SV | 2. Xoa MH | 3. Xoa diem: ";
             cin >> loai; cin.ignore();
@@ -517,11 +612,13 @@ void menu() {
                 xoaDiem(maSV, maMH);
             }
         }
-
+        
     } while (chon != 0);
 }
 
 int main() {
+	docFile(); 
     menu();
+    ghiFile(); 
     return 0;
 }
